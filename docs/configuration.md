@@ -1168,6 +1168,24 @@ Firstmate passes its profile line unless it states a reason to override, such as
 
 The live rule-match evidence is recorded in [`verification/dispatch-resolve.md`](verification/dispatch-resolve.md).
 
+## Typed intake resolution
+
+`bin/fm-intake-resolve.sh` classifies one captain ask with the same typesafe.ai opt-in key as typed dispatch resolution.
+It is off without that key, prints one `intake-resolve: off` line on stderr, and leaves firstmate's existing intake in control.
+When on, it sends the ask and the registered project names from `data/projects.md` (or `--projects`) as state and asks four questions in one request: deliverable (`ship`, `scout`, `answer`, `unclear`), effort (`low`, `medium`, `high`, `xhigh`), project (each registry name plus `none` and `unclear`), and a Noul for whether a clarifying question is required first.
+Code owns the 0.6 confidence floor and the escalate rule for an unclear deliverable, an unclear project, or an `ask_captain` probability at or above 0.6.
+The script header owns flags and output lines.
+This tool never authorizes a spawn and never replaces `AGENTS.md` section 7.
+
+## Typed skill suggestion
+
+`bin/fm-skill-suggest.sh` picks at most one agent-only skill from a SKILL.md catalog with the same opt-in key.
+It is off without that key and prints one `skill-suggest: off` line on stderr.
+When on, it reads `name` and `description` from each skill under `--skills-dir` (default `$FM_ROOT/.agents/skills`) and asks whether a skill is needed plus which catalog name to load, including `none`.
+Code loads a skill only on `clear` when `needs_skill` is at least 0.6 and the Choice is not `none`.
+The script header owns flags and output lines.
+A skill's `AGENTS.md` trigger remains authoritative when the tool is off, ambiguous, or in error.
+
 ## Toolchain
 
 On session start the first mate detects what its required toolchain is missing or too old and lists each problem with either an exact install command or manual instructions.
@@ -2272,7 +2290,7 @@ FMX_RELAY_URL=https://myfirstmate.io   # optional Relay endpoint override, mainl
 FMX_ENV_FILE=           # optional alternate .env file for direct Relay client invocations; bootstrap still checks $FM_HOME/.env
 FMX_DRY_RUN=            # truthy previews Relay replies and dismissals to state/x-outbox/ without posting or requiring a token
 FMX_X_REPLY_MAX_CHARS=280   # X reply per-message split budget; values below 50 clamp to 50
-TYPESAFE_API_KEY=       # typed dispatch resolution opt-in, from the environment or .env; absent means bin/fm-dispatch-resolve.sh is off (docs/configuration.md "Typed dispatch resolution")
+TYPESAFE_API_KEY=       # typed dispatch, intake, and skill-suggestion opt-in, from the environment or .env; absent means those tools stay off (docs/configuration.md "Typed dispatch resolution")
 FMX_DISCORD_REPLY_MAX_CHARS=1900   # Discord reply per-message split budget; values below 50 clamp to 50, values above 2000 reset to 1900
 FMX_X_THREAD_MAX=25     # maximum messages in one auto-split reply thread
 FMX_FOLLOWUP_MAX_AGE_SECS=604800   # local window for posting Relay completion follow-ups (7 days)
