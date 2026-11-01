@@ -1000,4 +1000,18 @@ expect_code 0 "$code" "--help exits 0"
 assert_contains "$out" 'Usage:' "--help prints usage"
 pass "configuration errors exit 2 before any network call"
 
+# --- FM_SKIP_HARNESSES: a switched-off harness is listed but never selected ----
+reset_log
+write_response "$RESPONSE" rule_4 0.9
+TYPESAFE_API_KEY=$KEY FM_SKIP_HARNESSES=cursor run code out err "$BRIEF" --project pager
+assert_contains "$out" 'candidate: cursor:cursor-grok-4.6-medium  -> not eligible: harness switched off' "a skipped harness is reported as switched off"
+assert_contains "$out" "  profile: --harness 'claude' --model 'sonnet' --effort 'high'" "the next candidate is selected instead"
+assert_not_contains "$out" "--harness 'cursor'" "a skipped harness is never selected"
+TYPESAFE_API_KEY=$KEY FM_SKIP_HARNESSES='kimi, cursor' run code out err "$BRIEF" --project pager
+assert_contains "$out" 'candidate: cursor:cursor-grok-4.6-medium  -> not eligible: harness switched off' "a comma-separated list with spaces skips each name"
+assert_contains "$out" 'candidate: kimi:kimi-code/k3  -> not eligible: harness switched off' "every listed harness is skipped"
+TYPESAFE_API_KEY=$KEY FM_SKIP_HARNESSES= run code out err "$BRIEF" --project pager
+assert_contains "$out" "  profile: --harness 'cursor' --model 'cursor-grok-4.6-medium'" "an empty list skips nothing"
+pass "FM_SKIP_HARNESSES switches harnesses off"
+
 printf '# all fm-dispatch-resolve tests passed\n'
